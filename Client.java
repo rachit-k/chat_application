@@ -1,4 +1,4 @@
-import java.util.ArrayList;
+import java.util.*;
 import java.io.*;
 import java.net.*; 
 
@@ -36,14 +36,21 @@ class Client
 
 	public void initialise()
 	{
-		socket = new Socket(server, 6789);
-		inFromServer  = new DataInputStream(socket.getInputStream());
-		outToServer = new DataOutputStream(socket.getOutputStream());
+		try
+		{
+			socket = new Socket(server, 6789);
+			inFromServer  = new DataInputStream(socket.getInputStream());
+			outToServer = new DataOutputStream(socket.getOutputStream());
 
-		ServerThread s=new ServerThread();
-		s.start();
+			ServerThread s =new ServerThread();
+			s.start();
 
-		outToServer.writeBytes(username + '\n');
+			outToServer.writeBytes(username + '\n');
+		}
+		catch(Exception e)
+		{			
+			System.out.println("Exception in ClientStart");			
+		}
 
 	}
 
@@ -61,14 +68,22 @@ class Client
 
 	public void end()
 	{
-		inFromServer.close();
-		outToServer.close();
-		socket.close();
+		try
+		{
+			inFromServer.close();
+			outToServer.close();
+			socket.close();
+		}
+		catch(Exception e)
+		{			
+			System.out.println("Exception in ClientEnd");			
+		}
 	}
 
 
-	public static void main(String args[]) 
+	public static void main(String args[])
 	{
+		Scanner scanner = new Scanner(System.in);
 		String uname;
 		String serv="localhost";
 		System.out.println("Enter the username and server: ");
@@ -86,7 +101,7 @@ class Client
 		while(true)
 		{
 			System.out.print(": ");
-			String sentence= scan.nextLine();
+			String sentence= scanner.nextLine();
 			if(sentence.equalsIgnoreCase("unregister"))
 			{
 				client.msgToServer(sentence);
@@ -105,7 +120,7 @@ class Client
 	}
 
 
-	class ServerThread implements Runnable
+	class ServerThread extends Thread
 	{
 		public void run()
 		{
