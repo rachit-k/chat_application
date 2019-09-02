@@ -11,8 +11,15 @@ class Server
 
 	Server()
 	{
-		clients=new ClientThread();
-		serverSocket= new ServerSocket();
+		clients=new ArrayList<ClientThread>();
+		try
+		{
+			serverSocket= new ServerSocket(6789);
+		}
+		catch(IOException e)
+		{
+			System.out.println("Exception in Server");
+		}
 	}
 
 	public void initialise()
@@ -21,10 +28,17 @@ class Server
 		
 		while(flag)
 		{
-			Socket connectionSocket = serverSocket.accept();
-			ClientThread newClient = new ClientThread(connectionSocket);
-			clients.add(newClient);
-			newClient.start();			
+			try
+			{
+				Socket connectionSocket = serverSocket.accept();			
+				ClientThread newClient = new ClientThread(connectionSocket);
+				clients.add(newClient);
+				newClient.start();	
+			}
+			catch(IOException e)
+			{
+				System.out.println("Exception in Server");
+			}		
 		}
 
 	}
@@ -34,8 +48,8 @@ class Server
 		String[] str=sentence.split(" ",3); 
 		String uname=str[1].substring(1);
 		String message=str[0]+str[2];
-		boolean flag=flase;
-		for(int i=0;i<clients.size(),i++)
+		boolean flag=false;
+		for(int i=0;i<clients.size();i++)
 		{
 			ClientThread temp=clients.get(i);
 			if(temp.username.equals(uname))
@@ -63,7 +77,7 @@ class Server
 		serv.initialise();
 	}
 
-	void removeClient(username)
+	void removeClient(String username)
 	{
 		for(int i=0;i<clients.size();i++)
 		{
@@ -77,7 +91,7 @@ class Server
 
 	}
 
-	class ClientThread implements Runnable
+	class ClientThread extends Thread
 	{
 		Socket connectionSocket;
 		DataInputStream inFromClient;
@@ -88,22 +102,43 @@ class Server
 		ClientThread(Socket connectionSocket)
 		{
 			this.connectionSocket=connectionSocket;
-			inFromClient=new DataInputStream();
-			outToClient=new DataOutputStream();
-			username=inFromClient.readline();
+			try
+			{
+				inFromClient=new DataInputStream(connectionSocket.getInputStream());
+				outToClient=new DataOutputStream(connectionSocket.getOutputStream());
+				username=inFromClient.readLine();
+			}
+			catch(IOException e)
+			{
+				System.out.println("Exception in ClientThread");
+			}
 			//chatting(username);
 		}
 
 		void msgToClient(String sentence)
 		{
-			outToClient.writeBytes("@"+sentence);
+			try
+			{
+				outToClient.writeBytes("@"+sentence);
+			}
+			catch(IOException e)
+			{
+				System.out.println("Exception in ClientThread");
+			}
 		}
 
 		public void run()
 		{
 			while(true)
 			{
-				sentence=inFromClient.readLine();
+				try
+				{
+					sentence=inFromClient.readLine();
+				}
+				catch(IOException e)
+				{
+					System.out.println("Exception in ClientThread");
+				}
 				if(sentence.equalsIgnoreCase("unregister"))
 				{
 					System.out.println("unregistered");
@@ -116,9 +151,16 @@ class Server
 				}
 			}
 			removeClient(username);
-			inFromClient.close();
-			outToClient.close();
-			connectionSocket.close();
+			try
+			{
+				inFromClient.close();
+				outToClient.close();
+				connectionSocket.close();
+			}
+			catch(IOException e)
+			{
+				System.out.println("Exception in ClientThread");
+			}
 
 		}
 	}
