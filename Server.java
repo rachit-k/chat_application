@@ -1,168 +1,157 @@
-import java.util.ArrayList;
 import java.io.*;
-import java.net.*; 
+import java.text.*;
+import java.util.*;
+import java.net.*;
 
-class Server
+class ServerData
 {
-	private ArrayList<ClientThread> clients;
-	ServerSocket serverSocket;
-
-	boolean flag;
-
-	Server()
-	{
-		clients=new ArrayList<ClientThread>();
-		try
-		{
-			serverSocket= new ServerSocket(6789);
-		}
-		catch(IOException e)
-		{
-			System.out.println("Exception in Server");
-		}
-	}
-
-	public void initialise()
-	{
-		flag=true;
-		
-		while(flag)
-		{
-			try
-			{
-				Socket connectionSocket = serverSocket.accept();			
-				ClientThread newClient = new ClientThread(connectionSocket);
-				clients.add(newClient);
-				newClient.start();	
-			}
-			catch(IOException e)
-			{
-				System.out.println("Exception in Server");
-			}		
-		}
-
-	}
-
-	public void chatting(String sentence)
-	{
-		String[] str=sentence.split(" ",3); 
-		String uname=str[1].substring(1);
-		String message=str[0]+str[2];
-		boolean flag=false;
-		for(int i=0;i<clients.size();i++)
-		{
-			ClientThread temp=clients.get(i);
-			if(temp.username.equals(uname))
-			{
-				temp.msgToClient(message);
-				flag=true;
-				break;
-			}
-		}
-		if(!flag)
-		{	
-			System.out.println("Client not found");
-		} 
-
-	}
-
-	public static void main(String args[])
-	{
-		Server serv=new Server();
-		// while(true)
-		// {
-		// 	Socket socket= serv.serverSocket.accept();
-
-		// }
-		serv.initialise();
-	}
-
-	void removeClient(String username)
-	{
-		for(int i=0;i<clients.size();i++)
-		{
-			ClientThread temp=clients.get(i);
-			if(temp.username.equals(username))
-			{
-				clients.remove(i);
-				break;
-			}
-		}
-
-	}
-
-	class ClientThread extends Thread
-	{
-		Socket connectionSocket;
-		DataInputStream inFromClient;
-		DataOutputStream outToClient;
-		String username;
-		String sentence;
-
-		ClientThread(Socket connectionSocket)
-		{
-			this.connectionSocket=connectionSocket;
-			try
-			{
-				inFromClient=new DataInputStream(connectionSocket.getInputStream());
-				outToClient=new DataOutputStream(connectionSocket.getOutputStream());
-				username=inFromClient.readLine();
-			}
-			catch(IOException e)
-			{
-				System.out.println("Exception in ClientThread");
-			}
-			//chatting(username);
-		}
-
-		void msgToClient(String sentence)
-		{
-			try
-			{
-				outToClient.writeBytes("@"+sentence);
-			}
-			catch(IOException e)
-			{
-				System.out.println("Exception in ClientThread");
-			}
-		}
-
-		public void run()
-		{
-			while(true)
-			{
-				try
-				{
-					sentence=inFromClient.readLine();
-				}
-				catch(IOException e)
-				{
-					System.out.println("Exception in ClientThread");
-				}
-				if(sentence.equalsIgnoreCase("unregister"))
-				{
-					System.out.println("unregistered");
-					flag=false;
-					break;
-				}
-				else
-				{
-					chatting(username+ " "+ sentence);
-				}
-			}
-			removeClient(username);
-			try
-			{
-				inFromClient.close();
-				outToClient.close();
-				connectionSocket.close();
-			}
-			catch(IOException e)
-			{
-				System.out.println("Exception in ClientThread");
-			}
-
-		}
-	}
+    boolean canSend;
+    boolean canReceive;
+    Socket For_me;
+    Socket For_other;
+    DataOutputStream MsgFromMe;
+    DataOutputStream MsgFromOther;
+    BufferedReader inFromClientForMe;
+    BufferedReader inFromClientForOther;
+    String userName;
+    public ServerData(Socket For_me,Socket For_other,BufferedReader inFromClientForMe, BufferedReader inFromClientForOther, DataOutputStream MsgFromMe, DataOutputStream MsgFromOther, boolean canSend, boolean canReceive, String userName){
+        this.canReceive = canReceive;
+        this.canSend = canSend;
+        this.inFromClientForOther = inFromClientForOther;
+        this.inFromClientForMe = inFromClientForMe;
+        this.For_other = For_other;
+        this.For_me = For_me;
+        this.MsgFromOther = MsgFromOther;
+        this.MsgFromMe = MsgFromMe;
+    }
+}
+public class Server
+{
+    public static ArrayList<ServerData> Clients = new ArrayList<ServerData>();
+    public static void main(String[] args) throws IOException
+    {
+        ServerSocket ss1 = new ServerSocket(5056);
+        ServerSocket ss2 = new ServerSocket(5057);
+        while (true)
+        {
+            Socket For_me = null;
+            Socket For_other = null;
+            
+            try
+            {
+                For_me = ss1.accept();
+                For_other = ss2.accept();
+                BufferedReader inFromClientForMe = new BufferedReader(new InputStreamReader(For_me.getInputStream()));
+                BufferedReader inFromClientForOther = new BufferedReader(new InputStreamReader(For_other.getInputStream()));
+                DataOutputStream MsgFromMe = new DataOutputStream(For_me.getOutputStream());
+                DataOutputStream MsgFromOther = new DataOutputStream(For_other.getOutputStream());
+                String userName = inFromClientForMe.readLine();
+                ServerData newClient = new ServerData(For_me,For_other,inFromClientForMe,inFromClientForOther,MsgFromMe,MsgFromOther,false,false,userName);
+                newClient.userName = userName;
+                newClient.userName = userName;
+                MsgFromMe.writeBytes("REGISTERD TOSEND " + userName + "\n");
+                MsgFromMe.writeBytes("REGISTERD TORECV " + userName + "\n");
+                String userName1 = inFromClientForMe.readLine();
+                userName1 = inFromClientForMe.readLine();
+                newClient.canSend = true;
+                newClient.canReceive = true;
+                Clients.add(newClient);
+                Thread t = new OtherClientHandler(inFromClientForOther,userName,MsgFromOther);
+                t.start();
+            }
+            catch (Exception e){
+                For_other.close();
+                For_me.close();
+                e.printStackTrace();
+            }
+        }
+    }
 }
 
+class OtherClientHandler extends Thread
+{
+    final BufferedReader inFromClientForOther;
+    final String ME;
+    final DataOutputStream MsgFromOther ;
+    public OtherClientHandler(BufferedReader inFromClientForOther, String ME,DataOutputStream MsgFromOther)
+    {
+        this.inFromClientForOther = inFromClientForOther;
+        this.ME = ME;
+        this.MsgFromOther = MsgFromOther;
+    }
+    public void run()
+    {
+        String received;
+        String toreturn= "" ;
+        boolean se = false;
+        boolean len = false;
+        boolean mess = false;
+        int leng =0;
+        int t1 =0;
+        String recipent = "";
+        String messgae = "";
+        while (true)
+        {
+            try {
+                received = inFromClientForOther.readLine();
+                if(received.length()>5){
+                    if(received.substring(0,5).equals("SEND ") && !se){
+                        recipent = received.substring(5,received.length());
+                        se = true;
+                    }
+                }
+                boolean fg = false;
+                if(received.length()>16){
+                    if(received.substring(0,16).equals("Content-length: ") && se){
+                        leng = Integer.parseInt(received.substring(16,received.length()));
+                        len  = true;
+                        fg = true;
+                    }
+                }
+                if(se && len && !mess && !fg){
+                    int t=0;
+                    while(t1<leng && t<received.length()){
+                        messgae = messgae + received.charAt(t);
+                        t1++;
+                        t++;
+                    }
+                    if(t1 == leng){
+                        mess = true;
+                    }
+                }
+                if( se && len && mess){
+                    boolean xd = false;
+                    for(int i=0;i<Server.Clients.size();i++){
+                        if(Server.Clients.get(i).userName.equals(recipent)){
+                            xd = true;
+                            Server.Clients.get(i).MsgFromOther.writeBytes("FORWARD " + ME + "\n" + "Content-length: " + leng + "\n" + "\n" + messgae + "\n");
+                            MsgFromOther.writeBytes("SENT "+recipent+"\n");
+                        }
+                    }
+                    if(!xd){
+                        MsgFromOther.writeBytes("ERROR 102 Unable to send" + "\n" + "\n");
+                    }
+                    se = false ;
+                    len = false;
+                    mess = false;
+                    t1 = 0;
+                    toreturn = "";
+                    recipent = "";
+                    leng = 0;
+                    messgae = "";
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+        }
+       /* try
+        {
+            this.inFromClientForOther.close();
+            this.inFromClientForMe.close();
+            this.MsgFromOther.close();
+            this.MsgFromMe.close();
+        }catch(IOException e){
+            e.printStackTrace();
+        }*/
+    }
+}
