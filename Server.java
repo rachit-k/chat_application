@@ -80,12 +80,13 @@ public class Server
                 Clients.add(newClient);
                 Thread t = new OtherClientHandler(inFromClientForOther,userName,MsgFromOther);
                 t.start();
-                Thread t1 = new FetchKey(inFromClientForMe,MsgFromOther,MsgFromMe);
+                Thread t1 = new FetchKey(inFromClientForMe,MsgFromOther,MsgFromMe,newClient.userName);
                 t1.start();
             }
             catch (Exception e){
                 For_other.close();
                 For_me.close();
+                System.out.println("Rahul");
                 e.printStackTrace();
             }
         }
@@ -218,12 +219,14 @@ class OtherClientHandler extends Thread
 
 class FetchKey extends Thread{
     final DataOutputStream MsgFromMe;
+    final String user;
     final DataOutputStream MsgFromOther;
     final BufferedReader inFromClientForMe;
-    public FetchKey(BufferedReader inFromClientForMe, DataOutputStream MsgFromOther, DataOutputStream MsgFromMe){
+    public FetchKey(BufferedReader inFromClientForMe, DataOutputStream MsgFromOther, DataOutputStream MsgFromMe, String user){
         this.MsgFromOther = MsgFromOther;
         this.MsgFromMe = MsgFromMe;
         this.inFromClientForMe = inFromClientForMe;
+        this.user = user;
     }
     public void run(){
         String received;
@@ -273,7 +276,12 @@ class FetchKey extends Thread{
                 }
             }
             catch(IOException e){
-                e.printStackTrace();
+                for(int i=0;i<Server.Clients.size();i++){
+                    if(Server.Clients.get(i).userName.equals(user)){
+                        Server.Clients.remove(i);
+                        break;
+                    }
+                }
             }
         }
     }
