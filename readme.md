@@ -5,12 +5,12 @@
 
 ### Execution:
 #### Server:
-javac Server.java
-java Server n
+javac Server.java .  
+java Server n .  
 (where n=0 for part1, 1 for part2 and 2 for part3)
 #### Client:
-javac Client.java   return
-java Client localhost username1
+javac Client.java .  
+java Client localhost username1 .  
 Now, type "@username2 message" to send message from username1 to username2
 
 #### Ctrl-C Scenario:
