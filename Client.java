@@ -53,6 +53,15 @@ public class Client
             Client.type = Integer.parseInt(hdfh);
             //System.out.println(hdfh);
             ToServer.writeBytes(args[1]+"\n");
+            String isError = inFromServer.readLine();
+            System.out.println("Hllo");
+            while(isError.equals("INVALID")){
+                System.out.println("ENTER ANOTHER NAME");
+                String possible = inFromUser.readLine();
+                ToServer.writeBytes(possible + "\n");
+                isError = inFromServer.readLine();
+            }
+            System.out.println("Hllo");
             String pk = Base64.getEncoder().encodeToString(publicKey);
             //System.out.println(pk);
             //System.out.println(publicKey);
@@ -125,6 +134,7 @@ class messageFromClient extends Thread
                             sender = sender + received.charAt(t);
                             t++;
                         }
+                        Client.data_came_from_sender = false;
                         ToServer.writeBytes("FETCHKEYA "+ sender+ "\n");
                         f = true;
                         l = false;
@@ -201,7 +211,8 @@ class messageFromClient extends Thread
                         byte[] si = Base64.getDecoder().decode(signature);
                         boolean dfg = true;
                         while(dfg){
-                            if(Client.data_came_from_sender){
+                            //System.out.println("Rahul");
+                            if(Client.sender.user.equals(sender)){
                                 dfg = false;
                             }
                         }
@@ -233,10 +244,11 @@ class messageFromClient extends Thread
                             System.out.println(sender + ": corrupted Message!");
                         }
                     }
-                    Client.data_came_from_sender = false;
+                    //Client.data_came_from_sender = false;
                 }
             } catch (Exception e) {
                 e.printStackTrace();
+                break;
             }
         }
        /* try
@@ -288,7 +300,8 @@ class messageFromServer extends Thread
                 }
                 
             } catch (Exception e) {
-                e.printStackTrace();
+                //e.printStackTrace();
+                break;
             }
         }
         /*try
@@ -322,7 +335,13 @@ class messageFromMe extends Thread
         {
             try {
                 received = inFromUser.readLine();
+                //System.out.println(received);
                 Client.data_came = false;
+                if(received.equals("UNREGISTER")){
+                    ToServer.writeBytes("UNREGISTER"+ "\n");
+                    //System.out.println("RahulRfd");
+                    continue;
+                }
                 if(received.length()>1){
                     if(received.substring(0,1).equals("@")){
                         char t = received.charAt(1);
@@ -346,21 +365,22 @@ class messageFromMe extends Thread
                         if(opponent.length()==0){
                             System.out.println("No User Name Specified");
                         }
+                        //System.out.println("So What!");
                         ToServer.writeBytes("FETCHKEY " + opponent + "\n");
+                        //System.out.println("So What1!");
                         boolean tx = true;
                         String pu = "";
                         //System.out.println("Rahul");
                         while(tx){
                             //System.out.println("Rahulwh");
 
-                            if(Client.data_came){
-                                tx = false;
-                            }
+                            
                             if(Client.recipent.user.equals(opponent)){
                                 pu = Client.recipent.publicKey;
+                                tx = false;
                             }
                         }
-
+                        //System.out.println("Here to send!");
                         if(!pu.equals("")){
                             int k=Client.type;
                             if(k==0){
@@ -403,6 +423,7 @@ class messageFromMe extends Thread
                 }
             } catch (Exception e) {
                 e.printStackTrace();
+                break;
             }
         }
         /*try

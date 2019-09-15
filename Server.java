@@ -64,8 +64,52 @@ public class Server
                 DataOutputStream MsgFromOther = new DataOutputStream(For_other.getOutputStream());
                 MsgFromMe.writeBytes(args[0]+ "\n");
                 String userName = inFromClientForMe.readLine();
+                boolean isValidName = true;
+                for(int i=0;i<Clients.size();i++){
+                    if(Clients.get(i).userName.equals(userName)){
+                        isValidName = false;
+                    }
+                }
+                for(int i=0;i<userName.length();i++){
+                    if(!(userName.charAt(i)>='A' && userName.charAt(i)<='Z') && !(userName.charAt(i)>='a' && userName.charAt(i) <= 'z')&& !(userName.charAt(i)>='0' && userName.charAt(i) <= '9')){
+                        isValidName = false;
+                    }
+                }
+                System.out.println("Hllo1");
+                if(!isValidName){
+                    MsgFromMe.writeBytes("INVALID" + "\n");
+                }
+                else{
+                    MsgFromMe.writeBytes("sdfds"+"\n");
+                }
+                while(!isValidName){
+                    System.out.println("Hll3o");
+
+                    userName = inFromClientForMe.readLine();
+                    System.out.println("Hll4o");
+
+                    isValidName = true;
+                    for(int i=0;i<Clients.size();i++){
+                        if(Clients.get(i).userName.equals(userName)){
+                            isValidName = false;
+                        }
+                    }
+                    for(int i=0;i<userName.length();i++){
+                        if(!(userName.charAt(i)>='A' && userName.charAt(i)<='Z') && !(userName.charAt(i)>='a' && userName.charAt(i) <= 'z')&& !(userName.charAt(i)>='0' && userName.charAt(i) <= '9')){
+                            isValidName = false;
+                        }
+                    }
+                    if(!isValidName){
+                        MsgFromMe.writeBytes("INVALID" + "\n");
+                    }
+                    else{
+                        MsgFromMe.writeBytes("sdfds"+"\n");
+                    }
+                }
+                System.out.println("Hll5o");
+
                 String publicKey = inFromClientForMe.readLine();
-                //System.out.println("sdsdvds");
+                System.out.println("sdsdvds");
                 byte[] sx = Base64.getDecoder().decode(publicKey);
                 ServerData newClient = new ServerData(For_me,For_other,inFromClientForMe,inFromClientForOther,MsgFromMe,MsgFromOther,false,false,userName);
                 newClient.userName = userName;
@@ -86,7 +130,7 @@ public class Server
             catch (Exception e){
                 For_other.close();
                 For_me.close();
-                System.out.println("Rahul");
+                //System.out.println("Rahul");
                 e.printStackTrace();
             }
         }
@@ -160,6 +204,7 @@ class OtherClientHandler extends Thread
                         for(int i=0;i<Server.Clients.size();i++){
                             if(Server.Clients.get(i).userName.equals(recipent)){
                                 xd = true;
+                                //System.out.println(messgae);
                                 Server.Clients.get(i).MsgFromOther.writeBytes("FORWARD " + ME + "\n" + "Content-length: " + leng + "\n" + "\n" + messgae + "\n");
                                 MsgFromOther.writeBytes("SENT "+recipent+"\n");
                             }
@@ -183,6 +228,7 @@ class OtherClientHandler extends Thread
                         for(int i=0;i<Server.Clients.size();i++){
                             if(Server.Clients.get(i).userName.equals(recipent)){
                                 xd = true;
+                                //System.out.println(messgae);
                                 Server.Clients.get(i).MsgFromOther.writeBytes("FORWARD " + ME + "\n" + "Content-length: " + leng + "\n" + signature +"\n" + messgae + "\n");
                                 MsgFromOther.writeBytes("SENT "+recipent+"\n");
                             }
@@ -236,6 +282,26 @@ class FetchKey extends Thread{
                 received = inFromClientForMe.readLine();
                 //System.out.println("Rahuldsds");
                 //System.out.println(received);
+                if(received.equals("UNREGISTER")){
+                    //System.out.println("On Server");
+                    for(int i=0;i<Server.Clients.size();i++){
+                        if(Server.Clients.get(i).userName.equals(user)){
+                            Server.Clients.get(i).inFromClientForMe.close();
+                            Server.Clients.get(i).inFromClientForOther.close();
+                            Server.Clients.get(i).MsgFromMe.close();
+                            Server.Clients.get(i).MsgFromOther.close();
+                            Server.Clients.get(i).For_me.close();
+                            Server.Clients.get(i).For_other.close();
+                            Server.Clients.remove(i);
+                            MsgFromMe.writeBytes("UNREGISTERED");
+                            break;
+                        }
+                    }
+                    for(int j=0;j<Server.Clients.size();j++){
+                        System.out.println(Server.Clients.get(j).userName);
+                    }
+                }
+                
                 if(received.length()>9){
                     if(received.substring(0,9).equals("FETCHKEY ")){
                         //System.out.println("Rahul");

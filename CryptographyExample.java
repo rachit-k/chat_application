@@ -23,7 +23,7 @@ public class CryptographyExample {
         
         Cipher cipher = Cipher.getInstance(ALGORITHM);
         cipher.init(Cipher.ENCRYPT_MODE, key);
-        
+        //System.out.println("HLLO");
         byte[] encryptedBytes = cipher.doFinal(inputData);
         
         return encryptedBytes;
