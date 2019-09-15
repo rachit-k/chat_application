@@ -75,7 +75,7 @@ public class Server
                         isValidName = false;
                     }
                 }
-                System.out.println("Hllo1");
+                //System.out.println("Hllo1");
                 if(!isValidName){
                     MsgFromMe.writeBytes("INVALID" + "\n");
                 }
@@ -83,10 +83,10 @@ public class Server
                     MsgFromMe.writeBytes("sdfds"+"\n");
                 }
                 while(!isValidName){
-                    System.out.println("Hll3o");
+                    //System.out.println("Hll3o");
 
                     userName = inFromClientForMe.readLine();
-                    System.out.println("Hll4o");
+                    //System.out.println("Hll4o");
 
                     isValidName = true;
                     for(int i=0;i<Clients.size();i++){
@@ -106,10 +106,10 @@ public class Server
                         MsgFromMe.writeBytes("sdfds"+"\n");
                     }
                 }
-                System.out.println("Hll5o");
+                //System.out.println("Hll5o");
 
                 String publicKey = inFromClientForMe.readLine();
-                System.out.println("sdsdvds");
+                //System.out.println("sdsdvds");
                 byte[] sx = Base64.getDecoder().decode(publicKey);
                 ServerData newClient = new ServerData(For_me,For_other,inFromClientForMe,inFromClientForOther,MsgFromMe,MsgFromOther,false,false,userName);
                 newClient.userName = userName;
@@ -246,8 +246,8 @@ class OtherClientHandler extends Thread
                         messgae = "";
                     }
                 }
-            } catch (IOException e) {
-                e.printStackTrace();
+            } catch (Exception e) {
+                //e.printStackTrace();
             }
         }
        /* try
@@ -286,19 +286,24 @@ class FetchKey extends Thread{
                     //System.out.println("On Server");
                     for(int i=0;i<Server.Clients.size();i++){
                         if(Server.Clients.get(i).userName.equals(user)){
-                            Server.Clients.get(i).inFromClientForMe.close();
+                            System.out.println(Server.Clients.get(i).userName + " is removed!");
+                            Server.Clients.remove(i);
+                            MsgFromMe.writeBytes("UNREGISTERED" + "\n");
+                            //Server.Clients.get(i).MsgFromMe.close();
+                            //Server.Clients.get(i).MsgFromOther.close();
+                            /*for(int j=0;j<Server.Clients.size();j++){
+                                System.out.println(Server.Clients.get(j).userName);
+                            }*/
+                            /*Server.Clients.get(i).inFromClientForMe.close();
                             Server.Clients.get(i).inFromClientForOther.close();
                             Server.Clients.get(i).MsgFromMe.close();
                             Server.Clients.get(i).MsgFromOther.close();
                             Server.Clients.get(i).For_me.close();
                             Server.Clients.get(i).For_other.close();
                             Server.Clients.remove(i);
-                            MsgFromMe.writeBytes("UNREGISTERED");
-                            break;
+                            MsgFromMe.writeBytes("UNREGISTERED");*/
+                            //break;
                         }
-                    }
-                    for(int j=0;j<Server.Clients.size();j++){
-                        System.out.println(Server.Clients.get(j).userName);
                     }
                 }
                 
@@ -341,13 +346,17 @@ class FetchKey extends Thread{
                     }
                 }
             }
-            catch(IOException e){
+            catch(Exception e){
+                
                 for(int i=0;i<Server.Clients.size();i++){
                     if(Server.Clients.get(i).userName.equals(user)){
+                        System.out.print(Server.Clients.get(i).userName);
+                        System.out.println(" has removed!");
                         Server.Clients.remove(i);
                         break;
                     }
                 }
+                break;
             }
         }
     }

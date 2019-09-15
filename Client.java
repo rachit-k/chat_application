@@ -54,14 +54,14 @@ public class Client
             //System.out.println(hdfh);
             ToServer.writeBytes(args[1]+"\n");
             String isError = inFromServer.readLine();
-            System.out.println("Hllo");
+            //System.out.println("Hllo");
             while(isError.equals("INVALID")){
                 System.out.println("ENTER ANOTHER NAME");
                 String possible = inFromUser.readLine();
                 ToServer.writeBytes(possible + "\n");
                 isError = inFromServer.readLine();
             }
-            System.out.println("Hllo");
+            //System.out.println("Hllo");
             String pk = Base64.getEncoder().encodeToString(publicKey);
             //System.out.println(pk);
             //System.out.println(publicKey);
@@ -247,7 +247,7 @@ class messageFromClient extends Thread
                     //Client.data_came_from_sender = false;
                 }
             } catch (Exception e) {
-                e.printStackTrace();
+                //e.printStackTrace();
                 break;
             }
         }
@@ -296,6 +296,7 @@ class messageFromServer extends Thread
                     Client.data_came_from_sender = true;
                 }
                 else{
+                    Client.data_came = true;
                     System.out.println(received);
                 }
                 
@@ -371,15 +372,18 @@ class messageFromMe extends Thread
                         boolean tx = true;
                         String pu = "";
                         //System.out.println("Rahul");
+                        int ifg=0;
                         while(tx){
                             //System.out.println("Rahulwh");
 
-                            
-                            if(Client.recipent.user.equals(opponent)){
+                           
+                            if(Client.recipent.user.equals(opponent) || Client.data_came){
                                 pu = Client.recipent.publicKey;
                                 tx = false;
                             }
+                           
                         }
+                        
                         //System.out.println("Here to send!");
                         if(!pu.equals("")){
                             int k=Client.type;
@@ -422,7 +426,7 @@ class messageFromMe extends Thread
                     System.out.println("Incorrect Format");
                 }
             } catch (Exception e) {
-                e.printStackTrace();
+                //e.printStackTrace();
                 break;
             }
         }
