@@ -204,7 +204,7 @@ class OtherClientHandler extends Thread
                         for(int i=0;i<Server.Clients.size();i++){
                             if(Server.Clients.get(i).userName.equals(recipent)){
                                 xd = true;
-                                //System.out.println(messgae);
+                                System.out.println(messgae);
                                 Server.Clients.get(i).MsgFromOther.writeBytes("FORWARD " + ME + "\n" + "Content-length: " + leng + "\n" + "\n" + messgae + "\n");
                                 MsgFromOther.writeBytes("SENT "+recipent+"\n");
                             }
@@ -228,7 +228,7 @@ class OtherClientHandler extends Thread
                         for(int i=0;i<Server.Clients.size();i++){
                             if(Server.Clients.get(i).userName.equals(recipent)){
                                 xd = true;
-                                //System.out.println(messgae);
+                                System.out.println(messgae);
                                 Server.Clients.get(i).MsgFromOther.writeBytes("FORWARD " + ME + "\n" + "Content-length: " + leng + "\n" + signature +"\n" + messgae + "\n");
                                 MsgFromOther.writeBytes("SENT "+recipent+"\n");
                             }
